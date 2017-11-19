@@ -22,6 +22,7 @@
     [super viewDidLoad];
     
     NSURL *url = [NSURL URLWithString:@"https://api.github.com/users/DanielGrosman/repos"];
+    // this object is used to make configurations specific to the URL
     NSURLRequest *urlRequest = [[NSURLRequest alloc] initWithURL:url];
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration];
@@ -31,21 +32,26 @@
             NSLog(@"error: %@", error.localizedDescription);
             return;
         }
+        
         NSError *jsonError = nil;
+        
+        // create an array of dictionary items from the JSON file
         NSArray *repos = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
         
         if (jsonError) {
             NSLog(@"jsonError: %@", jsonError.localizedDescription);
             return;
         }
-        
+        // initialize the reposArray
         self.reposArray = [[NSMutableArray alloc] init];
+        // for each of the repo dictionaries in the repo array, create a new Repo class item, initialize it with a repo from the dictionary, and then add it to the reposArray
         for (NSDictionary *repo in repos)
         {
             Repo *newRepo = [[Repo alloc] initWithDictionary:repo];
             
             [self.reposArray addObject:newRepo];
             
+            // relod the tableView (always have to perform UI updates on the main thread)
             [[NSOperationQueue mainQueue] addOperationWithBlock:^{
                 [self.tableView reloadData];
             }];
@@ -68,6 +74,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
+    // initiatlize a repo object and give it a repo object from the reposArray at the indexpath.row
     Repo *currentRepo = self.reposArray[indexPath.row];
     cell.textLabel.text = currentRepo.name;
     
